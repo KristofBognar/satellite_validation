@@ -1,6 +1,6 @@
 function [ range_km ] = dist_to_loc( lat_arr, lon_arr, location )
-%[ range_km ] = dist_to_PEARL( lat_arr, lon_arr )
-%   Calculates distance of Coordinates to PEARL Ridge Lab
+%[ range_km ] = dist_to_loc( lat_arr, lon_arr )
+%   Calculates distance of Coordinates to any location
 
 % create matching arrays
 loc_lat=ones(size(lat_arr))*location.lat;
