@@ -7,19 +7,32 @@
 
 
 % load data (already saved as a table)
-load('/home/kristof/work/SAOZ/O3_NO2_2005-2017.mat')
-% load('/home/kristof/work/SAOZ/O3_NO2_2005-2016.mat')
+% % load('/home/kristof/work/SAOZ/O3_NO2_2005-2017.mat')
+load('/home/kristof/work/SAOZ/O3_NO2_2005-2020.mat')
 
 % convert to array for easier rearrangement
 tmp=table2array(o3_no2);
 
+% read dSCDs to add sza and calculate more precise time for twilight columns
+% true: time and SZA are calculated from dscds (highest available 5deg SZA range)
+%       used for Bognar et al. 2019
+% false: time is from AMF file, and SZA is calculated using matlab
+%        AMF tme is usually for SZA=90
+read_dscd_time=false;
+
 % reorganize by trace gas and am/pm
 for tg=1:2
     
+% %     % Bognar et al. 2019    
+% %     if tg==1
+% %         load('/home/kristof/work/SAOZ/AMF_O3_2005-2017.mat')
+% %     else
+% %         load('/home/kristof/work/SAOZ/AMF_NO2_2005-2017.mat')
+% %     end
     if tg==1
-        load('/home/kristof/work/SAOZ/AMF_O3_2005-2017.mat')
+        load('/home/kristof/work/SAOZ/AMF_O3_2005-2020.mat')
     else
-        load('/home/kristof/work/SAOZ/AMF_NO2_2005-2017.mat')
+        load('/home/kristof/work/SAOZ/AMF_NO2_2005-2020.mat')
     end
     
     % split sunrise and sunset columns into separate rows; add column for
@@ -51,49 +64,57 @@ for tg=1:2
     saoz(isnan(saoz.mean_vcd),:)=[];
     saoz(isnan(saoz.mjd2k),:)=[];
     
-    %% time from dSCD files
-    
-    load('/home/kristof/work/SAOZ/SAOZ_dSCD.mat')
+    %% add SZA/SAA info
     
     dscd_time=NaN(size(saoz.year));
     dscd_sza=NaN(size(saoz.year));
-    
-    for i=1:length(saoz.year)
+
+    if read_dscd_time % time and SZA from dSCD files
         
-        % find matching twilight
-        ind=find(dscd.year==saoz.year(i) & dscd.day==saoz.day(i) & dscd.ampm==saoz.ampm(i));
+        disp('Reading time and SZA from dSCD file')
+        load('/home/kristof/work/SAOZ/SAOZ_dSCD.mat')
+
+        for i=1:length(saoz.year)
+
+            % find matching twilight
+            ind=find(dscd.year==saoz.year(i) & dscd.day==saoz.day(i) & dscd.ampm==saoz.ampm(i));
+
+            if isempty(ind), continue, end
+
+            % use max available SZA if below 91
+            max_sza=min(max(dscd.sza(ind)),91);
+
+            % find 5deg window
+            ind2=find(dscd.sza(ind)<=max_sza & dscd.sza(ind)>=max_sza-5);
+
+            % indices to use in time average
+            ind_time=ind(ind2);
+
+            % mean time
+            dscd_time(i)=mean(dscd.fractional_time(ind_time));
+            dscd_sza(i)=mean(dscd.sza(ind_time));
+
+        end
         
-        if isempty(ind), continue, end
-        
-        % use max available SZA if below 91
-        max_sza=min(max(dscd.sza(ind)),91);
-        
-        % find 5deg window
-        ind2=find(dscd.sza(ind)<=max_sza & dscd.sza(ind)>=max_sza-5);
-        
-        % indices to use in time average
-        ind_time=ind(ind2);
-        
-        % mean time
-        dscd_time(i)=mean(dscd.fractional_time(ind_time));
-        dscd_sza(i)=mean(dscd.sza(ind_time));
-        
+    else
+        disp('No dSCD file; SZA/SAA are calculated from AMF time')
     end
     
     % fill in time where dscds are missing
+    % all dscds are missing if read_dscd_time=false
     ind_tmp=find(isnan(dscd_time));
     if ~isempty(ind_tmp)
         dscd_time(ind_tmp)=saoz.fractional_time(ind_tmp);
     else
         disp('All times found in dSCD file')
     end
-    
+
     saoz.fractional_time=dscd_time;
     saoz.mjd2k=ft_to_mjd2k(saoz.fractional_time,saoz.year);
-    
+
     % add SZA
     saoz.sza=dscd_sza;
-    
+
     % Add SAA and fill in SZA where dscds are missing
     date_tmp=mjd2k_to_date(saoz.mjd2k);
     [az_tmp, sza_tmp] = SolarAzEl(date_tmp,80.053*ones(size(saoz.mjd2k)),...
@@ -104,7 +125,6 @@ for tg=1:2
     saoz.sza(ind_tmp)=sza_tmp(ind_tmp);
     saoz.saa=az_tmp;
 
-    
     %% save
     
     if tg==1 % ozone
