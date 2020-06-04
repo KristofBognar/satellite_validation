@@ -9,7 +9,8 @@ function makeDMPinput_v2(varargin)
 %
 % source types: 
 %   original from Dan: NDACC HDF files, TCCON NetCDF files, .dat, AMES
-%   'bruker': new wrapper for dat input
+%   'bruker_ndacc': new wrapper for dat input
+%   'bruker_tccon': using r3 processing, plus partial file for current year
 %   GBS options:
 %       'general': fixed set of SZA, don't use
 %       'meas_time': one DMP input for each measurements
@@ -18,7 +19,7 @@ function makeDMPinput_v2(varargin)
 % param_in: GBS only: 'O3_VIS', 'NO2_VIS', 'NO2_UV'
 %           brewer only: brewer instrument number, as string
 %
-% year input (string), works for 'bruker', 'meas_time', 'brewer': 
+% year input (string), works for 'bruker_ndacc', 'bruker_tccon', 'meas_time', 'brewer': 
 %   'all' to process all data
 %   '2018' to process given year
 %   '2018+' to process given year and all subsequent years
@@ -33,11 +34,11 @@ function makeDMPinput_v2(varargin)
 % modified by Kristof Bognar:
 % DMPs for the GBSs, Nov. 2017
 % added support for yearly DMPs, May 2020
-% DMPs for Brewers, May 2020
+% DMPs for Brewers, bruker TCCON, May 2020
 %
 % 
 %
-% Example: makeDMPinput_v2('Eureka','meas_time','NO2_UV');
+% Example: makeDMPinput_v2('Eureka','meas_time','NO2_UV','2018-2020');
 
 %% User guide
 
@@ -68,20 +69,12 @@ define_z = 1;
 PutFilesInYearlyFolders = 1; % if ==1, will put files into yearly folders.
 %% set up
 possiblesites = {'Eureka', 'Thule','Kiruna','Pokerflat','Harestua','NyAlesund'};
-possiblesources = {'bruker','TCCON','ames','dat','general','meas_time','osiris','brewer'};
-possiblesources_nargin2 = {'bruker','TCCON','ames','dat'};
+possiblesources = {'bruker_ndacc','bruker_tccon','TCCON','ames','dat','general','meas_time',...
+                   'osiris','brewer'};
+possiblesources_nargin2 = {'bruker_ndacc','TCCON','ames','dat'};
 instrument_name_override = 0;
 %% OPTIONS ****************************************************************
 switch nargin 
-%     case 0
-%         sitename = 'Eureka';
-%         source_type = 'bruker';
-%     case 1
-%         sitename = varargin{1};
-%         if ~strcmp(sitename,possiblesites) % check to ensure site aligns with expected sites
-%             error(['Input site ' sitename ' not recognized.'])
-%         end
-%         source_type = 'bruker';
     case 2
         %
         sitename = varargin{1};
@@ -143,7 +136,7 @@ do_osiris=false;
 %
 %% IMPORT DATA
 switch source_type
-    case 'bruker' % added by Kristof
+    case 'bruker_ndacc' % added by Kristof
         % NDACC only (quality controlled)
         % [time,location,sza,saa,z] = prepDMPinput_NDACC(sitename,define_z,tg_tag);
         
@@ -151,8 +144,17 @@ switch source_type
         [time,location,sza,saa,z] = prepDMPinput_bruker_dat(yr_out);
         
         LOSinfo = calc_LoS_bruker( z, sza, location, time );
-        outputdir = ['/home/kristof/work/DMP/DMP_input_files/BRUKER/'];
+        outputdir = ['/home/kristof/work/DMP/DMP_input_files/BRUKER_NDACC/'];
 
+    case 'bruker_tccon' % added by Kristof
+
+        % tccon measurements based on r3 data files on aurora
+        [time,location,sza,z] = prepDMPinput_TCCON_csv(yr_out);
+        
+        % LoS same as NDACC measaurements
+        LOSinfo = calc_LoS_bruker( z, sza, location, time );
+        outputdir = ['/home/kristof/work/DMP/DMP_input_files/BRUKER_TCCONr3/'];
+        
     case 'brewer' % added by Kristof
         % check input
         if isnan(str2double(param_in)), error('Provide Brewer number as string'), end
@@ -208,7 +210,9 @@ disp('Calculated LoS info for all datapoints');
 % 
 if instrument_name_override == 1
     switch source_type
-        case 'bruker'
+        case 'bruker_ndacc'
+            instrument_name = ['125HR'];
+        case 'bruker_tccon'
             instrument_name = ['125HR'];
         case 'brewer'
             instrument_name = ['BREWER' param_in];
