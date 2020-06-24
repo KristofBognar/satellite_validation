@@ -8,15 +8,40 @@ function save_bruker_prof_avk( tg, instrument )
 % retrieved partial columns and column averaging kernels (time X alt)
 %
 
+satval=0;
 if nargin==1, instrument='bruker'; end
 
-% load files
-hdf_dir=['/home/kristof/work/' instrument '/' tg '/'];
+% check tg input
+valid_tg={'O3','NO2','HCl','HNO3','ClONO2','HF'};
+if ~any(strcmp(valid_tg,tg)), error('Select valid trace gas'); end
 
-flist=get_file_list(hdf_dir,'hdf');
+
+% location of bruker files
+if satval
+    filedir=['/home/kristof/work/' instrument '/' tg];
+else
+    
+    if ~strcmpi(instrument,'bruker'), error('Set file path'), end
+    
+    server_path='/home/kristof/atmosp_servers/';
+    save_path='/home/kristof/work/bruker/PEARL_ozone_depletion/';
+
+    switch tg
+        case 'O3'
+            filedir=[server_path 'data/01/eur_ndacc/HDF/HDF_CAMS/'];
+        case 'NO2'
+            filedir=[server_path 'data/01/eur_ndacc/HDF/HDF_NO2/no2.error.fixed/'];
+        otherwise
+            filedir=[server_path 'data/01/eur_ndacc/HDF/HDFs_for_plotting/' lower(tg)];
+    end
+    
+end
 
 cur_dir=pwd();
-cd(hdf_dir);
+
+cd(filedir)
+temp = dir(['groundbased*' lower(tg) '*.hdf']); 
+flist = {temp.name}; % cell array of file names
 
 % output variables
 mjd2k_meas=[];
@@ -97,9 +122,16 @@ for i=1:length(layer_height)
 end
 
 % save results
-save(['../' instrument '_' lower(tg) '_prof_avk.mat'], 'mjd2k_meas' ,'alt_km',...
-    'layer_height','apriori','apriori_vmr','avk','avk_vmr','prof','dofs',...
-    'avk_diag', 'sensitivity');
+if satval
+    save(['../' instrument '_' lower(tg) '_prof_avk.mat'], 'mjd2k_meas' ,'alt_km',...
+        'layer_height','apriori','apriori_vmr','avk','avk_vmr','prof','dofs',...
+        'avk_diag', 'sensitivity');
+else
+    save([save_path instrument '_' lower(tg) '_prof_avk.mat'], 'mjd2k_meas' ,'alt_km',...
+        'layer_height','apriori','apriori_vmr','avk','avk_vmr','prof','dofs',...
+        'avk_diag', 'sensitivity');
+    
+end
 
 cd(cur_dir)
 

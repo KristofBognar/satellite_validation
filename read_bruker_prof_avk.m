@@ -1,5 +1,5 @@
 function [ alt_out, layer_height_out, ap_out, avk_out, prof_out, dof_out, avk_diag_out ] =...
-         read_bruker_prof_avk( tg, mjd2k_in, instrument )
+         read_bruker_prof_avk( tg, path_in, mjd2k_in, instrument )
 %READ_BRUKER_APRIORI_AVK read aprioris and averaging kernels from bruker NDACC HDF files 
 %   
 % INPUT:
@@ -16,11 +16,8 @@ function [ alt_out, layer_height_out, ap_out, avk_out, prof_out, dof_out, avk_di
 if nargin==2, instrument='bruker'; end
 
 % load avk file
-if tg==1
-    load(['/home/kristof/work/' instrument '/' instrument '_o3_prof_avk.mat'])
-elseif tg==2
-    load(['/home/kristof/work/' instrument '/' instrument '_no2_prof_avk.mat'])
-end
+load([path_in instrument '_' lower(tg) '_prof_avk.mat'])
+
 
 alt_out=alt_km;
 layer_height_out=layer_height;

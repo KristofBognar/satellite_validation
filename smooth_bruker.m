@@ -1,4 +1,4 @@
-function [ bruker ] = smooth_bruker( tg, bruker, instrument )
+function [ bruker ] = smooth_bruker( tg, path_in, bruker, instrument )
 %SMOOTH_BRUKER Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -8,9 +8,10 @@ function [ bruker ] = smooth_bruker( tg, bruker, instrument )
 AVK_LUT_dir='/home/kristof/work/NDACC/guidelines/2012/';
 
 % read bruker profiles
-[alt_bk,~,~,~,prof_bk]=read_bruker_prof_avk(tg,bruker.mjd2k, instrument);
+[alt_bk,~,~,~,prof_bk]=read_bruker_prof_avk(tg,path_in,bruker.mjd2k, instrument);
 
-if tg==1
+
+if strcmpi(tg,'o3')
     
     lowlim=.61;
     highlim=60;
@@ -25,7 +26,7 @@ if tg==1
     sonde_in = interp1(sonde_time, sonde_ozone, measurement_time);
 
     % get DOAS AVKs and aprioris
-    [lut_prof,lut_avk]=read_DOAS_prof_avk(tg,[bruker.year,floor(bruker.fractional_time)+1,...
+    [lut_prof,lut_avk]=read_DOAS_prof_avk(1,[bruker.year,floor(bruker.fractional_time)+1,...
                                           sonde_in],AVK_LUT_dir );
 
     % get avk smoothed partial column
@@ -36,7 +37,7 @@ if tg==1
 
     bruker.tot_col_smooth=tot_col_smooth';
 
-elseif tg==2
+elseif strcmpi(tg,'no2')
     
     lowlim=12;
     highlim=60;
