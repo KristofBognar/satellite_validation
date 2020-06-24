@@ -28,7 +28,7 @@ o3_diff=0;
 
 o3_prof_diff=0;
 
-no2_corr=0;
+no2_corr=1;
 no2_diff=1;
 
 smooth_diffs=0;
@@ -36,7 +36,7 @@ smooth_diffs=0;
 tc_stuff=0;
 
 o3_gb=0;
-no2_gb=0;
+no2_gb=1;
 
 
 %% global variables
