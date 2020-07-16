@@ -20,6 +20,16 @@ z_rl=fliplr([0.795, [1.5:1:59.5]]);
 z_ews=fliplr([0.5:1:59.5]);
 
 
+%% load file with brewer data
+
+tmp=dir(['/home/kristof/work/brewer/brewer' num2str(bw_num) '*.mat']);
+tmp={tmp.name};
+
+if length(tmp)>1, error('Multiple brewer files: merge files or adapt code'), end
+
+load(tmp{1})
+
+
 %% specify location based on brewer number and year
 loc_changed=0;
 
@@ -36,18 +46,25 @@ if bw_num==69
     at_ews=[ [datetime(2001,01,01,00,00,00),datetime(2009,02,25,00,00,00)];...
              [datetime(2013,07,10,00,00,00),datetime(2100,01,01,00,00,00)]    ]; 
     
-else
+elseif bw_num==192 
     
-    %%% To add other brewers with fixed location: set 'location' and 'z' to
-    %%% appropriate location in this bloc
+    % at EWS for 2019-2020
+    z=z_ews;
+    location=loc_ews;
     
-    %%% To add other brewers with variable location: follow brewer69 example
+    if min(brewer_ds.DateTime.Year)<2019, error('double check instrument location'), end
+  
+elseif bw_num==223 
+    
+    % at EWS for 2019-2020
+    z=z_rl;
+    location=loc_rl;
+    
+    if min(brewer_ds.DateTime.Year)<2019, error('double check instrument location'), end
     
 end
 
-%% load file with brewer data
-load(['/home/kristof/work/brewer/brewer_' num2str(bw_num) '_all.mat'])
-
+%% get times
 time_array=brewer_ds.DateTime;
 
 %% break up data
@@ -64,6 +81,8 @@ else
         ind=(time_array.Year>=str2double(yr_out(1:4)) & time_array.Year<=str2double(yr_out(6:9)));
     end
 end
+
+if isempty(ind), error(['No brewer' num2str(bw_num) ' data for input year(s)']); end
 
 % if location has changed, need to restrict index to one location
 if loc_changed % variable location: restrict results to one location, give warning

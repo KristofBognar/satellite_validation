@@ -14,10 +14,12 @@ function makeDMPinput_v2(varargin)
 %   GBS options:
 %       'general': fixed set of SZA, don't use
 %       'meas_time': one DMP input for each measurements
+%   'vertical': vertical DMP profile at the EWS and the Ridge Lab
 %   'osiris': vertical DMP profile at OSIRIS tangent point
 %
 % param_in: GBS only: 'O3_VIS', 'NO2_VIS', 'NO2_UV'
 %           brewer only: brewer instrument number, as string
+%           vertical only: 'EWS' or 'RL', for specific site coordinates
 %
 % year input (string), works for 'bruker_ndacc', 'bruker_tccon', 'meas_time', 'brewer': 
 %   'all' to process all data
@@ -70,7 +72,7 @@ PutFilesInYearlyFolders = 1; % if ==1, will put files into yearly folders.
 %% set up
 possiblesites = {'Eureka', 'Thule','Kiruna','Pokerflat','Harestua','NyAlesund'};
 possiblesources = {'bruker_ndacc','bruker_tccon','TCCON','ames','dat','general','meas_time',...
-                   'osiris','brewer'};
+                   'osiris','brewer','vertical'};
 possiblesources_nargin2 = {'bruker_ndacc','TCCON','ames','dat'};
 instrument_name_override = 0;
 %% OPTIONS ****************************************************************
@@ -188,6 +190,11 @@ switch source_type
         
         outputdir = ['/home/kristof/work/DMP/DMP_input_files/DOAS_' param_in '/'];
         
+    case 'vertical'
+        % vertical DMPs at the EWS or the Ridge Lab
+        [time, LOSinfo, z] = prepDMPinput_vertical( param_in, yr_out );
+        outputdir = ['/home/kristof/work/DMP/DMP_input_files/VERTICAL_' param_in '/'];
+        
     case 'osiris' % added by Kristof
         % load osiris file for PEARL, reformat accordingly
         [ LOSinfo, time, z ] = calc_LoS_OSIRIS( param_in );
@@ -222,6 +229,8 @@ if instrument_name_override == 1
             instrument_name = ['DOAS_' param_in];
         case 'osiris'
             instrument_name = ['OSIRIS_' param_in];
+        case 'vertical'
+            instrument_name = [param_in];
     end
     
 

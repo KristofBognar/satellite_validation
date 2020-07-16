@@ -51,11 +51,15 @@ if ~do_loop % one year or all years: single file per instrument
     
     %load GBS data and save time and solar position (use table fields,
     %location of columns is inconsistent)
-    try load([data_dir 'UT-GBS_' str_tmp '_VCD_' yr_out '_unfiltered.mat']), end
-    meas_all=[reanalysis.sza,reanalysis.saa,reanalysis.mjd2k]; 
+    try 
+        load([data_dir 'UT-GBS_' str_tmp '_VCD_' yr_out '_unfiltered.mat']);
+        meas_all=[reanalysis.sza,reanalysis.saa,reanalysis.mjd2k]; 
+    end
 
-    try load([data_dir 'PEARL-GBS_' str_tmp '_VCD_' yr_out '_unfiltered.mat']), end
-    meas_all=[meas_all;[reanalysis.sza,reanalysis.saa,reanalysis.mjd2k]];
+    try 
+        load([data_dir 'PEARL-GBS_' str_tmp '_VCD_' yr_out '_unfiltered.mat']);
+        meas_all=[meas_all;[reanalysis.sza,reanalysis.saa,reanalysis.mjd2k]];
+    end
 
 else % multiple years
         
