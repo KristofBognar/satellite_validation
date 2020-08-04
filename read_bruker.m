@@ -3,7 +3,7 @@ function [] = read_bruker(tg,instrument)
 %   Save coth total columns and
 
 %% setup
-satval=1;
+satval=0;
 if nargin==1, instrument='bruker'; end % can be set to paris
 
 % check tg input
