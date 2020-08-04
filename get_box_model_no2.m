@@ -31,13 +31,18 @@ sonde_select=''; % interpolate sonde data to given time
 % OSIRIS data starts in 2002, but there's no UT-GBS data that year
 % run model for all the days
 % startyear=2003;
-startyear=2017;
-endyear=2017;
+startyear=1999;
+endyear=2020;
 
-% integration limits for NO2 column
-lowlim=12;
-highlim=40;
+% integration limits for NO2 column (satval paper)
+% lowlim=12;
+% highlim=40;
+% max_days_in=300; % use February 15 - October 27, where max SZA is ~92.5
 
+% integration limits for NO2 column (ozone depletion)
+lowlim=10;
+highlim=60;
+max_days_in=151; % to end of May only
 
 %% setup
 
@@ -79,12 +84,11 @@ model_in.atmos=[model_in.z zeros(length(model_in.z),6)];
 for i=startyear:endyear
     
     % pick dates and deal with leap years
-    % use February 15 - October 27, where max SZA is ~92.5
     startday=46;
     if mod(i,4)==0, 
-        max_days=301;
+        max_days=max_days_in+1;
     else
-        max_days=300;
+        max_days=max_days_in;
     end
     
     disp(num2str(i));
@@ -120,6 +124,7 @@ for i=startyear:endyear
             case 'fix' % constant albedo
             model_in.albedo=0.9;
         end
+        
         %% get ozonesonde data
         % get data at noon of given day
         [ alt_grid_tmp, vmr_tmp, n_tmp, ~, ~, T_tmp]=interp_ozonesonde(i,j-0.5,sonde_select);

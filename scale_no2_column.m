@@ -5,7 +5,12 @@ function [ out ] = scale_no2_column( mjd2k, sza )
 % in: mjd2k; non-local SZA optional
 % out: no2, scale factor
 
-load('/home/kristof/work/models/NO2_box_model/no2_cols_12-40_km_albedo_interp.mat')
+%%% used for ozone depletion paper
+load('/home/kristof/work/models/NO2_box_model/no2_cols_10-60_km_feb-may_albedo_interp.mat')
+
+%%% used for satval paper
+%%%load('/home/kristof/work/models/NO2_box_model/no2_cols_12-40_km_albedo_interp.mat')
+
 % load('/home/kristof/work/models/NO2_box_model/no2_cols_14-40_km_albedo_interp.mat')
 % load('/home/kristof/work/models/NO2_box_model/no2_cols_14-40_km_nearest_sonde_albedo_interp.mat')
 
@@ -15,7 +20,7 @@ out=zeros(length(mjd2k),2);
 for i=1:length(mjd2k)
     
     % find corresponding time
-    [~,ind_match]=min(abs(model_no2.mjd2k-mjd2k(i)));
+    [min_val,ind_match]=min(abs(model_no2.mjd2k-mjd2k(i)));
     
     if nargin==1
         % only time is provided, use that to get no2 scale factor
@@ -46,8 +51,12 @@ for i=1:length(mjd2k)
               
     ratio=noon/match;
     
-    out(i,:)=[match,ratio];
-    
+    % double check if model data actually exists for given time
+    if min_val<1 % data within 1 day
+        out(i,:)=[match,ratio];
+    else
+        out(i,:)=[NaN,NaN];
+    end
 end
 
 
