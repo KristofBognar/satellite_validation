@@ -64,11 +64,13 @@ for yy=years
     n=numel(disp_str);    
     
     % load DMP file for given year and species
-% %     load(['/home/kristof/work/DMP/DMP_GBS_fixSZA/' species...
-% %           '_DMP_table_' num2str(yy) '.mat']);
-    load(['/home/kristof/work/DMP/DMP_DOAS_meas_time/DOAS_' species...
-          '_DMP_table_' num2str(yy) '.mat']);
-      
+    if ismac
+        error('set file path')
+    elseif isunix
+        load(['/home/kristof/work/DMP/DMP_DOAS_meas_time/DOAS_' species...
+              '_DMP_table_' num2str(yy) '.mat']);
+    end
+    
     % select list of indices for given year if there are multiple years
     if exist('ind_ft_unique', 'var')
         ind_ft=find(ind_ft_unique==find(years==yy));
