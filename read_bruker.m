@@ -7,7 +7,7 @@ satval=0;
 if nargin==1, instrument='bruker'; end % can be set to paris
 
 % check tg input
-valid_tg={'O3','NO2','HCl','HNO3','ClONO2','HF'};
+valid_tg={'O3','NO2','HCl','HNO3','ClONO2','HF','N2O'};
 if ~any(strcmp(valid_tg,tg)), error('Select valid trace gas'); end
 
 
@@ -27,6 +27,8 @@ else
             filedir=[server_path 'data/01/eur_ndacc/HDF/HDF_CAMS/'];
         case 'NO2'
             filedir=[server_path 'data/01/eur_ndacc/HDF/HDF_NO2/no2.error.fixed/'];
+        case 'N2O'
+            filedir=['/home/kristof/work/bruker/N2O/'];
         otherwise
             filedir=[server_path 'data/01/eur_ndacc/HDF/HDFs_for_plotting/' lower(tg)];
     end
